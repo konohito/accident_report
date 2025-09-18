@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>送信完了 - 事故報告</title>
+  <link rel="stylesheet" href="../common/css/base.css">
+  <style>
+    .success-container {
+      text-align: center;
+      padding: 40px 24px;
+    }
+    
+    .success-icon {
+      font-size: 64px;
+      color: #FF8F00;
+      margin-bottom: 24px;
+    }
+    
+    .success-title {
+      color: #FF8F00;
+      font-size: 24px;
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+    
+    .success-message {
+      color: #666;
+      font-size: 16px;
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+    
+    .report-id-display {
+      background-color: #FFF3E0;
+      border: 2px solid #FF8F00;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    
+    .report-id-display h3 {
+      color: #E65100;
+      margin-bottom: 12px;
+      font-size: 18px;
+    }
+    
+    .report-id {
+      font-size: 18px;
+      font-weight: bold;
+      color: #E65100;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+      word-break: break-all;
+    }
+    
+    .report-id-display p {
+      color: #666;
+      font-size: 14px;
+      margin: 0;
+    }
+    
+    .next-steps {
+      background-color: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 24px;
+      text-align: left;
+    }
+    
+    .next-steps h3 {
+      color: #333;
+      margin-bottom: 12px;
+      font-size: 18px;
+    }
+    
+    .next-steps ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+    
+    .next-steps li {
+      margin-bottom: 8px;
+      color: #555;
+    }
+    
+    .action-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 300px;
+      margin: 0 auto 20px auto;
+    }
+    
+    .close-instruction {
+      text-align: center;
+      color: #666;
+      font-size: 14px;
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #FFF3E0;
+      border-radius: 4px;
+      border-left: 4px solid #FF8F00;
+    }
+    
+    .btn-close {
+      background-color: #FF8F00;
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .btn-close:hover {
+      background-color: #E67E00;
+    }
+    
+    .btn-new-report {
+      background-color: #fff;
+      color: #FF8F00;
+      padding: 12px 24px;
+      border: 2px solid #FF8F00;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      display: inline-block;
+      text-align: center;
+    }
+    
+    .btn-new-report:hover {
+      background-color: #FF8F00;
+      color: white;
+    }
+    
+    @media (max-width: 480px) {
+      .success-container {
+        padding: 24px 16px;
+      }
+      
+      .success-icon {
+        font-size: 48px;
+      }
+      
+      .success-title {
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="success-container">
+      <div class="success-icon">✓</div>
+      <h2 class="success-title">送信が完了しました</h2>
+      <p class="success-message">
+        事故報告を受け付けました。<br>
+        ご報告いただき、ありがとうございました。
+      </p>
+      
+      <div id="reportNumberDisplay"></div>
+      
+      <div class="next-steps">
+        <h3>今後の流れ</h3>
+        <ul>
+          <li>報告内容は関係部署に共有されます</li>
+          <li>必要に応じて追加の確認をご連絡いたします</li>
+          <li>対応状況については後日お知らせいたします</li>
+        </ul>
+      </div>
+      
+      <div class="action-buttons">
+        <a href="index.html" class="btn-new-report">新しい報告を作成</a>
+      </div>
+      
+      <div class="close-instruction">
+        画面右上の✕ボタンで閉じてください
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // localStorageから報告結果を取得
+    const reportResult = JSON.parse(localStorage.getItem('reportResult') || '{}');
+    
+    if (reportResult && reportResult.reportId) {
+      const reportNumberDisplay = document.getElementById('reportNumberDisplay');
+      reportNumberDisplay.innerHTML = `
+        <div class="report-id-display">
+          <h3>報告番号はこちらです</h3>
+          <div class="report-id">${reportResult.reportId}</div>
+          <p>画面のスクリーンショットを撮っておいてください</p>
+        </div>
+      `;
+    }
+    
+    // URLパラメータから報告IDを取得（後方互換性）
+    const urlParams = new URLSearchParams(window.location.search);
+    const reportIdFromUrl = urlParams.get('id');
+    
+    if (reportIdFromUrl && !reportResult.reportId) {
+      const reportNumberDisplay = document.getElementById('reportNumberDisplay');
+      reportNumberDisplay.innerHTML = `
+        <div class="report-id-display">
+          <h3>報告番号はこちらです</h3>
+          <div class="report-id">${reportIdFromUrl}</div>
+          <p>画面のスクリーンショットを撮っておいてください</p>
+        </div>
+      `;
+    }
+    
+    
+  </script>
+</body>
+</html>
