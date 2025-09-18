@@ -4,7 +4,8 @@
 const config = {
     woffId: 'k7_SVZ1p8vy45jQkIRvOUw', // 本番環境のWOFF ID
    // gasUrl: 'https://script.google.com/macros/s/AKfycbxD9kzCqRreieyw1WDNADsaw_zLsmYGB6pTiue-5Vuw0-2KcViZ4MNM_TtQkeASIkN7OA/exec', // Cruto様本番環境
-    gasUrl: 'https://script.google.com/macros/s/AKfycby5fRaVu5vISA3dvflBAaYXtWtBGXRyWt9HpWYlAiWbqqHzyBxSAt6vpWn6NuWFk8Gj/exec', // 村松テスト
+    gasUrl: 'https://script.google.com/macros/s/AKfycbyL58-LDmfXvfXkYbj-LL9PPrnDZreH0RPg1-io0xgdNgICh30_VUBa1SZebAqk4hBxoA/exec', // 村松テスト
+
     
     googleMapsApiKey: 'AIzaSyCdhA4t8flujiYex2OddJCkFv4u6nWvi9w' // Google Maps Geocoding API
 };
