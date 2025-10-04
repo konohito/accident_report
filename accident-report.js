@@ -421,11 +421,36 @@ function handleAccidentTypeChange(e) {
     const vehicleSection = document.getElementById('vehicleSection');
     const otherLocationSection = document.getElementById('otherLocationSection');
     const vehiclePhotos = document.getElementById('vehiclePhotos');
-    
+    const locationCategory = document.getElementById('locationCategory');
+    const detailLocation = document.getElementById('detailLocation');
+    const otherLocation = document.getElementById('otherLocation');
+    const otherAccidentCategory = document.getElementById('otherAccidentCategory');
+    const detailLocationDiv = document.getElementById('detailLocationDiv');
+    const otherLocationDiv = document.getElementById('otherLocationDiv');
+
     if (e.target.value === 'vehicle') {
         vehicleSection.classList.add('active');
         vehiclePhotos.classList.add('active');
         otherLocationSection.style.display = 'none';
+
+        if (locationCategory) {
+            locationCategory.value = '';
+        }
+        if (detailLocation) {
+            detailLocation.value = '';
+            if (detailLocationDiv) {
+                detailLocationDiv.style.display = 'none';
+            }
+        }
+        if (otherLocation) {
+            otherLocation.value = '';
+            if (otherLocationDiv) {
+                otherLocationDiv.style.display = 'none';
+            }
+        }
+        if (otherAccidentCategory) {
+            otherAccidentCategory.value = '';
+        }
     } else {
         vehicleSection.classList.remove('active');
         vehiclePhotos.classList.remove('active');
@@ -844,6 +869,7 @@ function buildReportData(formData, photoData) {
     // 条件分岐データを追加
     if (formData.accidentType === 'other') {
         // その他事故の項目
+        baseData.otherAccidentCategory = formData.otherAccidentCategory;
         baseData.locationCategory = formData.locationCategory;
         baseData.locationDetail = formData.detailLocation;
         baseData.locationNote = formData.otherLocation;
@@ -1187,6 +1213,12 @@ function validateForm() {
         }
     } else {
         // その他の場合の場所チェック
+        const otherAccidentCategory = document.getElementById('otherAccidentCategory');
+        if (!otherAccidentCategory.value) {
+            showError(otherAccidentCategory);
+            isValid = false;
+        }
+
         const locationCategory = document.getElementById('locationCategory');
         if (!locationCategory.value) {
             showError(locationCategory);
@@ -1238,43 +1270,17 @@ function collectFormData() {
     
     // 手動で値を設定
     formData.office = document.getElementById('office').value || userOrganization;
-    
+    formData.otherAccidentCategory = document.getElementById('otherAccidentCategory')?.value || '';
+
     // チェックボックスの値を収集
     const injuryTypes = [];
     document.querySelectorAll('input[name="injuryType"]:checked').forEach(cb => {
         injuryTypes.push(cb.value);
     });
     formData.injuryTypes = injuryTypes;
-    
+
     // 写真データを追加
     formData.photos = photoData;
-    
-    // デバッグ: 収集したフォームデータを確認
-    console.log('🔍 collectFormData結果:', JSON.stringify(formData, null, 2));
-    console.log('🔍 車両事故フィールド:', {
-        accidentType: formData.accidentType,
-        driverName: formData.driverName,
-        propertyDamage: formData.propertyDamage,
-        propertyDetailsText: formData.propertyDetailsText,
-        personalInjury: formData.personalInjury,
-        injuryDetailsText: formData.injuryDetailsText
-    });
-    
-    // 個別の要素から直接値を取得して確認
-    console.log('🔍 DOM要素から直接取得:', {
-        driverName: document.getElementById('driverName')?.value,
-        propertyDamage: document.querySelector('input[name="propertyDamage"]:checked')?.value,
-        propertyDetailsText: document.getElementById('propertyDetailsText')?.value,
-        personalInjury: document.querySelector('input[name="personalInjury"]:checked')?.value,
-        injuryDetailsText: document.getElementById('injuryDetailsText')?.value
-    });
-    console.log('🔍 写真データ数:', {
-        scene: photoData.scene?.length || 0,
-        property: photoData.property?.length || 0,
-        otherVehicle: photoData.otherVehicle?.length || 0,
-        ownVehicle: photoData.ownVehicle?.length || 0,
-        license: photoData.license?.length || 0
-    });
 }
 
 // 確認内容生成
@@ -1300,8 +1306,14 @@ function generateConfirmContent() {
     } else {
         const categorySelect = document.getElementById('locationCategory');
         const locationCategory = categorySelect.options[categorySelect.selectedIndex].text;
-        html += `<p><strong>場所分類:</strong> ${locationCategory}</p>`;
-        
+        const otherAccidentCategory = document.getElementById('otherAccidentCategory');
+        const accidentCategoryText = otherAccidentCategory && otherAccidentCategory.value
+            ? otherAccidentCategory.options[otherAccidentCategory.selectedIndex].text
+            : '未選択';
+
+        html += `<p><strong>事故種類:</strong> ${accidentCategoryText}</p>`;
+        html += `<p><strong>事業所分類:</strong> ${locationCategory}</p>`;
+
         if (formData.detailLocation) {
             html += `<p><strong>詳細場所:</strong> ${formData.detailLocation}</p>`;
         }
@@ -1369,9 +1381,6 @@ async function submitForm() {
         const reportData = buildReportData(formData, photoData);
         
         // デバッグ: 送信データを確認
-        console.log('📤 送信するreportData:', JSON.stringify(reportData, null, 2));
-        console.log('📤 元のformData:', JSON.stringify(formData, null, 2));
-        console.log('📤 写真データ:', {
             scene: photoData.scene?.length || 0,
             property: photoData.property?.length || 0,
             otherVehicle: photoData.otherVehicle?.length || 0,
@@ -1425,6 +1434,7 @@ async function submitForm() {
             }
         } else if (reportData.accidentType === 'その他') {
             // その他事故の場合の追加フィールド
+            formDataParams.append('otherAccidentCategory', reportData.otherAccidentCategory || '');
             formDataParams.append('locationCategory', reportData.locationCategory || '');
             formDataParams.append('locationDetail', reportData.locationDetail || '');
             formDataParams.append('locationNote', reportData.locationNote || '');
@@ -1441,7 +1451,6 @@ async function submitForm() {
             }
         });
         
-        console.log('📤 送信データサイズ:', {
             写真枚数: totalPhotos,
             データサイズKB: jsonSizeKB,
             URLSearchParams文字数: formDataParams.toString().length
