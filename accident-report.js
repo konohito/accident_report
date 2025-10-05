@@ -10,6 +10,7 @@ const config = {
     googleMapsApiKey: 'AIzaSyCdhA4t8flujiYex2OddJCkFv4u6nWvi9w' // Google Maps Geocoding API
 };
 
+
 // グローバル変数
 let formData = {};
 let photoData = {
@@ -1451,11 +1452,10 @@ async function submitForm() {
             }
         });
         
-console.log('🚚 事故報告送信パラメータ:', {
-    写真枚数: totalPhotos,
-    データサイズKB: jsonSizeKB,
-    URLSearchParams文字数: formDataParams.toString().length
-});
+            写真枚数: totalPhotos,
+            データサイズKB: jsonSizeKB,
+            URLSearchParams文字数: formDataParams.toString().length
+        });
         
         const response = await fetch(config.gasUrl, {
             method: 'POST',
