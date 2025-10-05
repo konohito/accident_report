@@ -1390,17 +1390,17 @@ async function submitForm() {
             license: photoData.license?.length || 0
         });
 
-        
+        console.log('📝 事故報告送信開始:', {
+            事故種別: reportData.accidentType,
+            写真枚数: totalPhotos,
+            データサイズ: `${jsonSizeKB}KB`
+        });
+
         // データサイズチェック
         const jsonSize = JSON.stringify(reportData).length;
         const jsonSizeKB = (jsonSize / 1024).toFixed(1);
         const totalPhotos = Object.values(reportData.photos).flat().length;
         
-        console.log('📝 事故報告送信開始:', { 
-            事故種類: reportData.accidentType, 
-            写真枚数: totalPhotos,
-            データサイズ: `${jsonSizeKB}KB`
-        });
         
         // データサイズ制限チェック（5枚の画像でも2MB以内に収まるよう調整）
         if (jsonSize > 2 * 1024 * 1024) { // 2MB以上
@@ -1504,3 +1504,5 @@ async function submitForm() {
         sendingMessage.style.display = 'none'; // 送信中メッセージを非表示
     }
 }
+
+
