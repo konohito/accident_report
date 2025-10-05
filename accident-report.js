@@ -10,6 +10,7 @@ const config = {
     googleMapsApiKey: 'AIzaSyCdhA4t8flujiYex2OddJCkFv4u6nWvi9w' // Google Maps Geocoding API
 };
 
+
 // グローバル変数
 let formData = {};
 let photoData = {
@@ -1453,11 +1454,11 @@ async function submitForm() {
             }
         });
         
-            写真枚数: totalPhotos,
-            データサイズKB: jsonSizeKB,
-            URLSearchParams文字数: formDataParams.toString().length
+        console.log('[INFO] Payload summary:', {
+            photoCount: totalPhotos,
+            dataSizeKB: jsonSizeKB,
+            urlSearchParamsLength: formDataParams.toString().length
         });
-        
         const response = await fetch(config.gasUrl, {
             method: 'POST',
             headers: {
