@@ -1380,7 +1380,12 @@ async function submitForm() {
     
     submitBtn.disabled = true;
     cancelBtn.disabled = true;
-    sendingMessage.style.display = 'block'; // 送信中メッセージを表示
+    sendingMessage.style.display = 'block';
+
+    let jsonSizeBytes = 0;
+    let jsonSizeKB = '0';
+    let totalPhotos = 0;
+ // 送信中メッセージを表示
     
     // プログレス表示用
     let progressStep = 0;
@@ -1414,9 +1419,9 @@ async function submitForm() {
         });
 
         // データサイズチェック
-        const jsonSize = JSON.stringify(reportData).length;
-        const jsonSizeKB = (jsonSize / 1024).toFixed(1);
-        const totalPhotos = Object.values(reportData.photos).flat().length;
+        jsonSizeBytes = JSON.stringify(reportData).length;
+        jsonSizeKB = (jsonSizeBytes / 1024).toFixed(1);
+        totalPhotos = Object.values(reportData.photos).flat().length;
 
         console.log('📝 事故報告送信開始:', {
             事故種別: reportData.accidentType,
@@ -1425,7 +1430,7 @@ async function submitForm() {
         });
 
         // データサイズ制限チェック（5枚の画像でも2MB以内に収まるよう調整）
-        if (jsonSize > 2 * 1024 * 1024) { // 2MB以上
+        if (jsonSizeBytes > 2 * 1024 * 1024) { // 2MB以上
             throw new Error(`データサイズが大きすぎます (${jsonSizeKB}KB)。画像を減らすか、より小さい画像を使用してください。`);
         }
         
