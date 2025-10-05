@@ -10,7 +10,6 @@ const config = {
     googleMapsApiKey: 'AIzaSyCdhA4t8flujiYex2OddJCkFv4u6nWvi9w' // Google Maps Geocoding API
 };
 
-
 // グローバル変数
 let formData = {};
 let photoData = {
