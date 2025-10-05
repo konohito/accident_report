@@ -1381,13 +1381,15 @@ async function submitForm() {
         // 新しいデータ構造に変換
         const reportData = buildReportData(formData, photoData);
         
-        // デバッグ: 送信データを確認
+        // デバッグ: 送信データ確認
+        console.log('🚚 送信データ確認:', {
             scene: photoData.scene?.length || 0,
             property: photoData.property?.length || 0,
             otherVehicle: photoData.otherVehicle?.length || 0,
             ownVehicle: photoData.ownVehicle?.length || 0,
             license: photoData.license?.length || 0
         });
+
         
         // データサイズチェック
         const jsonSize = JSON.stringify(reportData).length;
