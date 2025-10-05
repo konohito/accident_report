@@ -1451,10 +1451,11 @@ async function submitForm() {
             }
         });
         
-            写真枚数: totalPhotos,
-            データサイズKB: jsonSizeKB,
-            URLSearchParams文字数: formDataParams.toString().length
-        });
+console.log('🚚 事故報告送信パラメータ:', {
+    写真枚数: totalPhotos,
+    データサイズKB: jsonSizeKB,
+    URLSearchParams文字数: formDataParams.toString().length
+});
         
         const response = await fetch(config.gasUrl, {
             method: 'POST',
