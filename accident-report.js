@@ -3,7 +3,7 @@
 // 設定
 const config = {
     woffId: 'k7_SVZ1p8vy45jQkIRvOUw', // 本番環境のWOFF ID
-   gasUrl: 'https://script.google.com/macros/s/AKfycbwOFBTARY_dumhH6KKKHQ4T5-fFcF04BuhzimOwgFjpbObDWQUXP0C1oVncviBWaDJ0Bg/exec', // Cruto様本番環境
+   gasUrl: 'https://script.google.com/macros/s/AKfycbxs8lyQWVQ5OOKQsLXFO8arNG-TuavpaN5Nblk2ud7YsxF6dRz-NgVR75JdB7HSoFEl8Q/exec', // Cruto様本番環境
     
    //gasUrl: 'https://script.google.com/macros/s/AKfycby5fRaVu5vISA3dvflBAaYXtWtBGXRyWt9HpWYlAiWbqqHzyBxSAt6vpWn6NuWFk8Gj/exec', // 村松テスト
 
