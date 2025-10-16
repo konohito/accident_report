@@ -88,6 +88,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         // まず最初にイベントリスナーを設定（フォーム操作を即座に有効化）
         console.log('⚙️ Setting up event listeners...');
         setupEventListeners();
+        const initialType = document.querySelector('input[name="accidentType"]:checked')?.value;
+setScenePhotoRequired(initialType === 'vehicle');
+
         console.log('✅ Event listeners setup complete');
     } catch (eventError) {
         console.error('❌ Event listener setup failed:', eventError);
@@ -441,6 +444,7 @@ function setupEventListeners() {
     });
 }
 
+
 // 事故種類変更時の処理
 function handleAccidentTypeChange(e) {
     const vehicleSection = document.getElementById('vehicleSection');
@@ -481,7 +485,23 @@ function handleAccidentTypeChange(e) {
         vehiclePhotos.classList.remove('active');
         otherLocationSection.style.display = 'block';
     }
+    setScenePhotoRequired(e.target.value === 'vehicle');
 }
+
+function setScenePhotoRequired(isRequired) {
+    const sceneInput = document.getElementById('scenePhoto');
+    const sceneLabel = document.querySelector('#scenePhotoUpload')?.parentElement?.querySelector('label');
+    if (!sceneInput) return;
+    if (isRequired) {
+        sceneInput.setAttribute('required', 'required');
+        sceneLabel?.classList.add('required');
+    } else {
+        sceneInput.removeAttribute('required');
+        sceneLabel?.classList.remove('required');
+        clearError(sceneInput);  // エラー表示が出ていたら消す
+    }
+}
+
 
 // 対物選択時の処理
 function handlePropertyDamageChange(e) {
@@ -1186,12 +1206,12 @@ function validateForm() {
         isValid = false;
     }
     
-    // 事故現場の写真チェック
-    if (photoData.scene.length === 0) {
+        const selectedType = document.querySelector('input[name="accidentType"]:checked')?.value;
+    if (selectedType === 'vehicle' && photoData.scene.length === 0) {
         showError(document.getElementById('scenePhoto'));
         isValid = false;
     }
-    
+
     // 車両事故の場合の追加チェック
     const accidentType = document.querySelector('input[name="accidentType"]:checked');
     if (accidentType && accidentType.value === 'vehicle') {
@@ -1532,5 +1552,3 @@ async function submitForm() {
         sendingMessage.style.display = 'none'; // 送信中メッセージを非表示
     }
 }
-
-
