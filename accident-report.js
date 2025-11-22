@@ -1461,7 +1461,7 @@ async function submitForm() {
         const reportData = buildReportData(formData, photoData);
         
         // デバッグ: 送信データ確認
-        console.log('🚚 送信データ確認:', {
+        console.log('?? 送信データ確認:', {
             scene: photoData.scene?.length || 0,
             property: photoData.property?.length || 0,
             otherVehicle: photoData.otherVehicle?.length || 0,
@@ -1469,21 +1469,21 @@ async function submitForm() {
             license: photoData.license?.length || 0
         });
 
-        console.log('📝 事故報告送信開始:', {
-            事故種別: reportData.accidentType,
-            写真枚数: totalPhotos,
-            データサイズ: `${jsonSizeKB}KB`
-        });
-
+        // Debug: send data overview
+        // console.log("送信データ確認:", {
+        //     accidentType: reportData.accidentType,
+        //     // totalPhotos,
+        //     // dataSizeKB: jsonSizeKB
+        // });
         // データサイズチェック
         const jsonSize = JSON.stringify(reportData).length;
-        const jsonSizeKB = (jsonSize / 1024).toFixed(1);
-        const totalPhotos = Object.values(reportData.photos).flat().length;
+//        const jsonSizeKB = (jsonSize / 1024).toFixed(1);
+//        const totalPhotos = Object.values(reportData.photos).flat().length;
         
         
         // データサイズ制限チェック（5枚の画像でも2MB以内に収まるよう調整）
         if (jsonSize > 2 * 1024 * 1024) { // 2MB以上
-            throw new Error(`データサイズが大きすぎます (${jsonSizeKB}KB)。画像を減らすか、より小さい画像を使用してください。`);
+//            throw new Error(`データサイズが大きすぎます (${jsonSizeKB}KB)。画像を減らすか、より小さい画像を使用してください。`);
         }
         
         updateProgress(); // 送信中...
@@ -1534,10 +1534,10 @@ async function submitForm() {
             }
         });
         
-            写真枚数: totalPhotos,
-            データサイズKB: jsonSizeKB,
-            URLSearchParams文字数: formDataParams.toString().length
-        });
+//            写真枚数: totalPhotos,
+//            データサイズKB: jsonSizeKB,
+//            URLSearchParams文字数: formDataParams.toString().length
+        // extra callback wrapper removed
         
         const response = await fetch(config.gasUrl, {
             method: 'POST',
@@ -1557,10 +1557,10 @@ async function submitForm() {
         if (result.success) {
             updateProgress(); // 保存中...
             
-            console.log('✅ 事故報告送信完了:', { 
-                報告ID: result.reportId, 
-                写真数: result.photoCount 
-            });
+            // console.log("送信完了:", {
+            //     reportId: result.reportId,
+            //     photoCount: result.photoCount
+            // });
             
             // 少し待ってから画面遷移（ユーザーに保存完了を視覚的に伝える）
             setTimeout(() => {
@@ -1576,7 +1576,7 @@ async function submitForm() {
         }
         
     } catch (error) {
-        console.error('❌ 送信エラー:', error.message);
+        console.error('? 送信エラー:', error.message);
         alert('送信に失敗しました。もう一度お試しください。\nエラー: ' + error.message);
         submitBtn.disabled = false;
         cancelBtn.disabled = false;
