@@ -42,58 +42,58 @@ if ('serviceWorker' in navigator) {
 // 初期化
 document.addEventListener('DOMContentLoaded', async function() {
     // バージョン確認用ログ（確認後削除）
-    console.log('🔄 Script loaded: v20250728001, DOMContentLoaded fired');
+    console.log('?? Script loaded: v20250728001, DOMContentLoaded fired');
     
     // フォーム要素の存在確認
     const form = document.getElementById('accidentReportForm');
     const reporter = document.getElementById('reporter');
     const officeContainer = document.getElementById('officeContainer');
     
-    console.log('📋 Elements check:', {
+    console.log('?? Elements check:', {
         form: !!form,
         reporter: !!reporter,
         officeContainer: !!officeContainer
     });
     
     if (!form) {
-        console.error('❌ フォーム要素が見つかりません');
+        console.error('? フォーム要素が見つかりません');
         return;
     }
     
     try {
         // まず最初にイベントリスナーを設定（フォーム操作を即座に有効化）
-        console.log('⚙️ Setting up event listeners...');
+        console.log('?? Setting up event listeners...');
         setupEventListeners();
-       // 初期状態では写真は任意（事故種類が未選択 or その他）
+        // 初期状態では写真は任意（事故種類が未選択 or その他）
         try {
             const initialType = document.querySelector('input[name="accidentType"]:checked')?.value;
             setScenePhotoRequired(initialType === 'vehicle');
         } catch (_) {
             // 初期化中は無視
         }
-        console.log('✅ Event listeners setup complete');
+        console.log('? Event listeners setup complete');
     } catch (eventError) {
-        console.error('❌ Event listener setup failed:', eventError);
+        console.error('? Event listener setup failed:', eventError);
         return;
     }
     
     try {
         // WOFF初期化
-        console.log('🔄 Starting WOFF initialization...');
+        console.log('?? Starting WOFF initialization...');
         const profile = await WOFFManager.init(config.woffId);
-        console.log('✅ WOFF initialization successful:', profile);
+        console.log('? WOFF initialization successful:', profile);
         
         // 報告者名を設定
         document.getElementById('reporter').value = profile.displayName;
-        console.log('👤 Reporter name set:', profile.displayName);
+        console.log('?? Reporter name set:', profile.displayName);
         
         // 今日の日付を設定（即座に実行）
         const today = new Date();
         document.getElementById('incidentDate').value = today.toISOString().split('T')[0];
-        console.log('📅 Date set:', today.toISOString().split('T')[0]);
+        console.log('?? Date set:', today.toISOString().split('T')[0]);
         
         // ユーザーの組織情報を非同期で取得（ブロッキングしない）
-        console.log('🏢 Getting user organization...');
+        console.log('?? Getting user organization...');
         getUserOrganization(profile.userId);
         
         
@@ -138,7 +138,7 @@ async function getUserOrganization(userId) {
         
         try {
             // GETリクエストでパラメータとして送信（CORS回避）
-            const params = new URLSearchParams(requestData);
+//            const params = new URLSearchParams(requestData);
             const getUrl = `${config.gasUrl}?${params.toString()}`;
             
             response = await fetch(getUrl, {
@@ -278,7 +278,7 @@ async function loadOfficesFromSheet() {
             cache.offices = offices;
             cache.officesExpiry = Date.now() + cache.CACHE_DURATION;
             
-            console.log('✅ 事業所一覧取得成功:', offices.length + '件（キャッシュ更新）');
+            console.log('? 事業所一覧取得成功:', offices.length + '件（キャッシュ更新）');
             
             // 現在のofficeSelectの状態を確認
             const officeSelect = document.getElementById('office');
@@ -359,7 +359,7 @@ function loadOfficesFromCache() {
 
 // イベントリスナーの設定
 function setupEventListeners() {
-        // 「その他」用の利用者名フィールドを動的に挿入
+    // 「その他」用の利用者名フィールドを動的に挿入
     ensureOtherUserNameField();
     // 事故種類の選択による表示切替
     document.querySelectorAll('input[name="accidentType"]').forEach(radio => {
@@ -404,7 +404,7 @@ function setupEventListeners() {
     // 送信ボタン
     const submitBtn = document.getElementById('submitBtn');
     if (submitBtn) {
-        submitBtn.addEventListener('click', showConfirmModal);
+        submitBtn.addEventListener('click', handleSubmitClick);
     }
     
     // モーダルボタン
@@ -416,17 +416,17 @@ function setupEventListeners() {
     }
     
     // エラーメッセージのクリア
-    document.querySelectorAll('input, select, textarea').forEach(element => {
-        element.addEventListener('input', function() {
-            clearError(this);
+      document.querySelectorAll('input, select, textarea').forEach(element => {
+          element.addEventListener('input', function() {
+              clearError(this);
         });
         element.addEventListener('change', function() {
             clearError(this);
         });
     });
-}
+  }
 
-// 「その他」発生場所セクションに利用者名フィールドを追加
+  // 「その他」発生場所セクションに利用者名フィールドを追加
   function ensureOtherUserNameField() {
       try {
           const otherSection = document.getElementById('otherLocationSection');
@@ -679,7 +679,7 @@ async function getAddressFromCoordinates(lat, lng) {
                 
                 // Google APIのformatted_addressから日本を除去して使用
                 const formattedAddress = cleanJapaneseAddress(bestResult.formatted_address);
-                console.log('📍 住所取得完了:', formattedAddress);
+                console.log('?? 住所取得完了:', formattedAddress);
                 
                 // Google Maps APIレスポンスをログに送信
                 try {
@@ -700,7 +700,7 @@ async function getAddressFromCoordinates(lat, lng) {
                 return formattedAddress;
             }
         } catch (error) {
-            console.error('❌ Google Maps APIエラー:', error.message);
+            console.error('? Google Maps APIエラー:', error.message);
         }
     }
     
@@ -718,11 +718,11 @@ async function getAddressFromCoordinates(lat, lng) {
         
         if (data && data.display_name) {
             const detailedAddress = formatDetailedJapaneseAddress(data);
-            console.log('📍 住所取得完了 (Nominatim):', detailedAddress);
+            console.log('?? 住所取得完了 (Nominatim):', detailedAddress);
             return detailedAddress;
         }
     } catch (error) {
-        console.error('❌ Nominatim APIエラー:', error.message);
+        console.error('? Nominatim APIエラー:', error.message);
     }
     
     return null;
@@ -939,10 +939,10 @@ function buildReportData(formData, photoData) {
         photos: {
             scene: photoData.scene || []
         }
-    };
-
-
-        baseData.userName = formData.userName;
+      };
+      
+      // ?g?p?l??f?[?^????
+      baseData.userName = formData.userName;
     
     // 条件分岐データを追加
     if (formData.accidentType === 'other') {
@@ -1160,13 +1160,13 @@ function setupPhotoUpload(inputId, uploadDivId, previewId, photoType) {
         for (const file of Array.from(e.target.files)) {
             if (file.type.startsWith('image/')) {
                 try {
-                    console.log(`📷 画像処理開始: ${file.name} (${(file.size / 1024).toFixed(1)}KB)`);
+                    console.log(`?? 画像処理開始: ${file.name} (${(file.size / 1024).toFixed(1)}KB)`);
                     
                     // 画像を直接圧縮（参考アプリ準拠）
                     const base64 = await compressImageDirect(file);
                     const compressedSize = base64.length * 0.75 / 1024; // Base64サイズからおおよそのKBを計算
                     
-                    console.log(`📷 圧縮完了: ${file.name} → ${compressedSize.toFixed(1)}KB`);
+                    console.log(`?? 圧縮完了: ${file.name} → ${compressedSize.toFixed(1)}KB`);
                     
                     photoData[photoType].push({
                         name: file.name,
@@ -1225,7 +1225,7 @@ function validateForm() {
         }
     });
     
-   // 事業所のチェック
+    // 事業所のチェック
     const office = document.getElementById('office').value;
     if (!office) {
         alert('事業所が設定されていません');
@@ -1583,3 +1583,4 @@ async function submitForm() {
         sendingMessage.style.display = 'none'; // 送信中メッセージを非表示
     }
 }
+
