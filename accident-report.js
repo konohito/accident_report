@@ -11,29 +11,6 @@ const config = {
     googleMapsApiKey: 'AIzaSyCdhA4t8flujiYex2OddJCkFv4u6nWvi9w' // Google Maps Geocoding API
 };
 
-(function ensureVConsole() {
-    if (typeof window === 'undefined') {
-        return;
-    }
-
-    const boot = () => {
-        if (!window.vConsole && window.VConsole) {
-            window.vConsole = new window.VConsole({ theme: 'dark' });
-            console.log('[debug] vConsole initialized');
-        }
-    };
-
-    if (window.VConsole) {
-        boot();
-    } else {
-        const script = document.createElement('script');
-        script.src = '../common/js/vconsole.min.js?v=20251004001';
-        script.addEventListener('load', boot);
-        script.addEventListener('error', () => console.warn('[debug] vConsole failed to load'));
-        document.head.appendChild(script);
-    }
-})();
-
 
 // グローバル変数
 let formData = {};
@@ -88,9 +65,13 @@ document.addEventListener('DOMContentLoaded', async function() {
         // まず最初にイベントリスナーを設定（フォーム操作を即座に有効化）
         console.log('⚙️ Setting up event listeners...');
         setupEventListeners();
-        const initialType = document.querySelector('input[name="accidentType"]:checked')?.value;
-setScenePhotoRequired(initialType === 'vehicle');
-
+       // 初期状態では写真は任意（事故種類が未選択 or その他）
+        try {
+            const initialType = document.querySelector('input[name="accidentType"]:checked')?.value;
+            setScenePhotoRequired(initialType === 'vehicle');
+        } catch (_) {
+            // 初期化中は無視
+        }
         console.log('✅ Event listeners setup complete');
     } catch (eventError) {
         console.error('❌ Event listener setup failed:', eventError);
@@ -379,6 +360,8 @@ function loadOfficesFromCache() {
 
 // イベントリスナーの設定
 function setupEventListeners() {
+        // 「その他」用の利用者名フィールドを動的に挿入
+    ensureOtherUserNameField();
     // 事故種類の選択による表示切替
     document.querySelectorAll('input[name="accidentType"]').forEach(radio => {
         radio.addEventListener('change', handleAccidentTypeChange);
@@ -444,6 +427,50 @@ function setupEventListeners() {
     });
 }
 
+// 「その他」発生場所セクションに利用者名フィールドを追加
+  function ensureOtherUserNameField() {
+      try {
+          const otherSection = document.getElementById('otherLocationSection');
+          if (!otherSection) return;
+
+          // 既に存在する場合は何もしない
+          if (document.getElementById('userName')) return;
+
+          const locationCategorySelect = document.getElementById('locationCategory');
+          const locationGroup = locationCategorySelect && locationCategorySelect.closest('.form-group');
+
+          const wrapper = document.createElement('div');
+          wrapper.className = 'form-group';
+          wrapper.innerHTML = [
+              '<label class="required">利用者の名前</label>',
+              '<input type="text" id="userName" name="userName" placeholder="利用者の氏名を入力してください">',
+              '<span class="error-message">利用者の名前を入力してください</span>'
+          ].join('');
+
+          if (locationGroup && locationGroup.parentElement === otherSection) {
+              otherSection.insertBefore(wrapper, locationGroup);
+          } else {
+              otherSection.insertBefore(wrapper, otherSection.firstChild);
+          }
+      } catch (e) {
+          console.error('利用者名フィールド生成エラー:', e);
+      }
+  }
+
+  // 送信ボタンクリック時のラッパー（「その他」の利用者名必須チェックを追加）
+  function handleSubmitClick() {
+      const accidentTypeInput = document.querySelector('input[name="accidentType"]:checked');
+      if (accidentTypeInput && accidentTypeInput.value === 'other') {
+          const userNameField = document.getElementById('userName');
+          if (userNameField && !userNameField.value) {
+              showError(userNameField);
+              alert('利用者の名前を入力してください');
+              return;
+          }
+      }
+
+      showConfirmModal();
+  }
 
 // 事故種類変更時の処理
 function handleAccidentTypeChange(e) {
@@ -485,23 +512,27 @@ function handleAccidentTypeChange(e) {
         vehiclePhotos.classList.remove('active');
         otherLocationSection.style.display = 'block';
     }
+
+    // 事故種類に応じて「事故現場の写真」の必須を切り替え
     setScenePhotoRequired(e.target.value === 'vehicle');
 }
 
+// 「事故現場の写真」を必須/任意に切り替え
 function setScenePhotoRequired(isRequired) {
     const sceneInput = document.getElementById('scenePhoto');
+    // ラベルは scenePhotoUpload の親(.form-group)内の <label>
     const sceneLabel = document.querySelector('#scenePhotoUpload')?.parentElement?.querySelector('label');
     if (!sceneInput) return;
     if (isRequired) {
         sceneInput.setAttribute('required', 'required');
-        sceneLabel?.classList.add('required');
+        if (sceneLabel) sceneLabel.classList.add('required');
     } else {
         sceneInput.removeAttribute('required');
-        sceneLabel?.classList.remove('required');
-        clearError(sceneInput);  // エラー表示が出ていたら消す
+        if (sceneLabel) sceneLabel.classList.remove('required');
+        // 任意にしたときはエラー表示を消す
+        clearError(sceneInput);
     }
 }
-
 
 // 対物選択時の処理
 function handlePropertyDamageChange(e) {
@@ -910,6 +941,9 @@ function buildReportData(formData, photoData) {
             scene: photoData.scene || []
         }
     };
+
+
+        baseData.userName = formData.userName;
     
     // 条件分岐データを追加
     if (formData.accidentType === 'other') {
@@ -1192,7 +1226,7 @@ function validateForm() {
         }
     });
     
-    // 事業所のチェック
+   // 事業所のチェック
     const office = document.getElementById('office').value;
     if (!office) {
         alert('事業所が設定されていません');
@@ -1206,12 +1240,13 @@ function validateForm() {
         isValid = false;
     }
     
-        const selectedType = document.querySelector('input[name="accidentType"]:checked')?.value;
-    if (selectedType === 'vehicle' && photoData.scene.length === 0) {
+    // 事故現場の写真チェック（車両事故のときのみ必須）
+    const selectedTypeForPhoto = document.querySelector('input[name="accidentType"]:checked')?.value;
+    if (selectedTypeForPhoto === 'vehicle' && photoData.scene.length === 0) {
         showError(document.getElementById('scenePhoto'));
         isValid = false;
     }
-
+    
     // 車両事故の場合の追加チェック
     const accidentType = document.querySelector('input[name="accidentType"]:checked');
     if (accidentType && accidentType.value === 'vehicle') {
@@ -1401,12 +1436,7 @@ async function submitForm() {
     
     submitBtn.disabled = true;
     cancelBtn.disabled = true;
-    sendingMessage.style.display = 'block';
-
-    let jsonSizeBytes = 0;
-    let jsonSizeKB = '0';
-    let totalPhotos = 0;
- // 送信中メッセージを表示
+    sendingMessage.style.display = 'block'; // 送信中メッセージを表示
     
     // プログレス表示用
     let progressStep = 0;
@@ -1439,19 +1469,20 @@ async function submitForm() {
             license: photoData.license?.length || 0
         });
 
-        // データサイズチェック
-        jsonSizeBytes = JSON.stringify(reportData).length;
-        jsonSizeKB = (jsonSizeBytes / 1024).toFixed(1);
-        totalPhotos = Object.values(reportData.photos).flat().length;
-
         console.log('📝 事故報告送信開始:', {
             事故種別: reportData.accidentType,
             写真枚数: totalPhotos,
             データサイズ: `${jsonSizeKB}KB`
         });
 
+        // データサイズチェック
+        const jsonSize = JSON.stringify(reportData).length;
+        const jsonSizeKB = (jsonSize / 1024).toFixed(1);
+        const totalPhotos = Object.values(reportData.photos).flat().length;
+        
+        
         // データサイズ制限チェック（5枚の画像でも2MB以内に収まるよう調整）
-        if (jsonSizeBytes > 2 * 1024 * 1024) { // 2MB以上
+        if (jsonSize > 2 * 1024 * 1024) { // 2MB以上
             throw new Error(`データサイズが大きすぎます (${jsonSizeKB}KB)。画像を減らすか、より小さい画像を使用してください。`);
         }
         
@@ -1485,6 +1516,7 @@ async function submitForm() {
             }
         } else if (reportData.accidentType === 'その他') {
             // その他事故の場合の追加フィールド
+            formDataParams.append('userName', reportData.userName || '');
             formDataParams.append('otherAccidentCategory', reportData.otherAccidentCategory || '');
             formDataParams.append('locationCategory', reportData.locationCategory || '');
             formDataParams.append('locationDetail', reportData.locationDetail || '');
@@ -1502,11 +1534,11 @@ async function submitForm() {
             }
         });
         
-        console.log('[INFO] Payload summary:', {
-            photoCount: totalPhotos,
-            dataSizeKB: jsonSizeKB,
-            urlSearchParamsLength: formDataParams.toString().length
+            写真枚数: totalPhotos,
+            データサイズKB: jsonSizeKB,
+            URLSearchParams文字数: formDataParams.toString().length
         });
+        
         const response = await fetch(config.gasUrl, {
             method: 'POST',
             headers: {
