@@ -111,11 +111,11 @@ function runProcess() {
     const shiftMaster = getShiftMaster();
     const ss = SpreadsheetApp.openById(ssId);
     const csvRows = [['従業員番号', 'freee人事労務での表示名（編集しても反映されません）', '日付', '勤務パターンコード', '勤務日種別', '出勤時刻', '退勤時刻', '休憩時間', '休憩開始1', '休憩終了1', '休憩開始2', '休憩終了2', '休憩開始3', '休憩終了3', '夜勤日種別']];
-    const layout = getLayout(selLoc);
 
-    jobSheets.forEach(job => {
+    jobSheets.forEach((job, sheetIdx) => {
       const sheet = ss.getSheetByName(job.name);
       if (!sheet) return;
+      const layout = getLayout(selLoc, sheetIdx);
 
       const dateValues = sheet.getRange(layout.dateRange).getValues()[0];
       const ym = targetMonth.match(/(\d{4})年(\d{1,2})月/);
@@ -167,16 +167,28 @@ function runProcess() {
   }
 }
 
-function getLayout(locName) {
+function getLayout(locName, sheetIdx) {
   const groupA = ['嘉島', '佐土原', '宇城', '新土河原', '玉名', '山鹿', '大矢野'];
   if (locName === 'グルホ') {
+    // 1シートに3セクション（行範囲は重複なし）→ 全グループそのまま使用
     return { dateRange: 'H3:AL3', groups: [{ staff: 'C5:C17', shift: 'H5:AL17' }, { staff: 'C20:C32', shift: 'H20:AL32' }, { staff: 'C35:C47', shift: 'H35:AL47' }] };
   } else if (locName === 'cocoro光の森&玉名') {
     return { dateRange: 'J2:AN2', groups: [{ office: 'A22:A73', staff: 'E22:E73', shift: 'J22:AN73' }] };
   } else if (groupA.includes(locName)) {
-    return { dateRange: 'J2:AN2', groups: [{ office: 'A23:A57', staff: 'E23:E57', shift: 'J23:AN57' }, { office: 'A11:A63', staff: 'E11:E63', shift: 'J11:AN63' }, { office: 'A22:A57', staff: 'E22:E57', shift: 'J22:AN57' }] };
+    // シート0=看護, シート1=リハ, シート2=ケアステ（大矢野）
+    const groups = [
+      { office: 'A23:A57', staff: 'E23:E57', shift: 'J23:AN57' },
+      { office: 'A11:A63', staff: 'E11:E63', shift: 'J11:AN63' },
+      { office: 'A22:A57', staff: 'E22:E57', shift: 'J22:AN57' }
+    ];
+    return { dateRange: 'J2:AN2', groups: [groups[sheetIdx] || groups[0]] };
   } else {
-    return { dateRange: 'J2:AN2', groups: [{ office: 'A22:A57', staff: 'E22:E57', shift: 'J22:AN57' }, { office: 'A10:A48', staff: 'E10:E48', shift: 'J10:AN48' }] };
+    // シート0=看護, シート1=リハ
+    const groups = [
+      { office: 'A22:A57', staff: 'E22:E57', shift: 'J22:AN57' },
+      { office: 'A10:A48', staff: 'E10:E48', shift: 'J10:AN48' }
+    ];
+    return { dateRange: 'J2:AN2', groups: [groups[sheetIdx] || groups[0]] };
   }
 }
 
