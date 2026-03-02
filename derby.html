@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Noto+Sans+JP:wght@900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+:root {
+  --gold: linear-gradient(135deg, #ffd700 0%, #fffac8 50%, #ffd700 100%);
+  --gold-color: #ffd700;
+  --fire: #ff3e1a;
+  --neon: #00ff41;
+  --cyan: #00f2ff;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: #000;
+  color: #fff;
+  font-family: 'Noto Sans JP', sans-serif;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}
+
+#three-canvas { position: fixed; inset: 0; z-index: 1; }
+
+/* ==============================
+   Main Layout: side-by-side
+============================== */
+.app-layout {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: row;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* ==============================
+   Left Panel — Brand / Live Stats
+============================== */
+.left-panel {
+  width: 30%;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: rgba(0, 0, 0, 0.88);
+  border-right: 2px solid var(--fire);
+  padding: 22px 18px;
+  gap: 18px;
+}
+
+.logo-block {
+  text-align: center;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(255, 215, 0, 0.15);
+}
+
+.logo {
+  font-family: 'Orbitron';
+  font-size: 1.35rem;
+  font-weight: 900;
+  background: var(--gold);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: 2px;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.logo-year {
+  font-family: 'Orbitron';
+  font-size: 0.65rem;
+  color: rgba(255, 215, 0, 0.35);
+  letter-spacing: 6px;
+}
+
+.votes-display {
+  text-align: center;
+  padding: 14px;
+  background: rgba(255, 62, 26, 0.07);
+  border: 1px solid rgba(255, 62, 26, 0.25);
+  border-radius: 10px;
+}
+
+.votes-label {
+  font-family: 'Orbitron';
+  font-size: 0.6rem;
+  letter-spacing: 0.25em;
+  color: rgba(255, 255, 255, 0.3);
+  display: block;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+
+.votes-count {
+  font-family: 'Orbitron';
+  font-size: 2.4rem;
+  font-weight: 900;
+  color: var(--gold-color);
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+  line-height: 1;
+}
+
+/* Top favourites podium */
+.podium-block {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+}
+
+.podium-label {
+  font-family: 'Orbitron';
+  font-size: 0.6rem;
+  letter-spacing: 0.25em;
+  color: rgba(255, 255, 255, 0.25);
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.podium-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  border-left: 3px solid transparent;
+}
+
+.podium-item.p1 { border-left-color: #ffd700; background: rgba(255, 215, 0, 0.05); }
+.podium-item.p2 { border-left-color: #c0c0c0; background: rgba(192, 192, 192, 0.03); }
+.podium-item.p3 { border-left-color: #cd7f32; background: rgba(205, 127, 50, 0.03); }
+
+.podium-rank {
+  font-family: 'Orbitron';
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
+  width: 18px;
+  text-align: center;
+}
+
+.podium-name {
+  flex: 1;
+  font-size: 0.95rem;
+  font-weight: 900;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.podium-odds {
+  font-family: 'Orbitron';
+  font-size: 1rem;
+  color: var(--neon);
+  text-shadow: 0 0 6px var(--neon);
+  flex-shrink: 0;
+}
+
+/* Live badge */
+.live-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 62, 26, 0.18);
+  margin-top: auto;
+}
+
+.live-dot {
+  width: 7px;
+  height: 7px;
+  background: var(--fire);
+  border-radius: 50%;
+  animation: live-blink 1s ease-in-out infinite;
+}
+
+@keyframes live-blink {
+  0%, 100% { opacity: 1; box-shadow: 0 0 8px var(--fire); }
+  50% { opacity: 0.25; box-shadow: none; }
+}
+
+.live-text {
+  font-family: 'Orbitron';
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  color: var(--fire);
+  text-transform: uppercase;
+}
+
+/* ==============================
+   Right Panel — 2-col Odds Grid
+============================== */
+.right-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 22px;
+  overflow: hidden;
+}
+
+.board-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  flex-shrink: 0;
+}
+
+.board-title {
+  font-family: 'Orbitron';
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--gold-color);
+  text-shadow: 0 0 10px var(--gold-color);
+  letter-spacing: 6px;
+}
+
+.board-sub {
+  font-family: 'Orbitron';
+  font-size: 0.55rem;
+  letter-spacing: 0.2em;
+  color: rgba(255, 255, 255, 0.18);
+  text-transform: uppercase;
+}
+
+.odds-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  overflow-y: auto;
+  align-content: start;
+  padding-right: 2px;
+}
+
+.odds-grid::-webkit-scrollbar { width: 3px; }
+.odds-grid::-webkit-scrollbar-track { background: transparent; }
+.odds-grid::-webkit-scrollbar-thumb { background: rgba(255, 215, 0, 0.15); border-radius: 2px; }
+
+.odds-item {
+  background: rgba(20, 8, 8, 0.75);
+  border: 1px solid rgba(255, 215, 0, 0.12);
+  border-radius: 10px;
+  padding: 11px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: border-color 0.25s;
+}
+
+.odds-item:hover { border-color: rgba(255, 215, 0, 0.35); }
+.odds-item.top { border-color: rgba(255, 215, 0, 0.45); background: rgba(255, 215, 0, 0.04); }
+
+.odds-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  margin-right: 10px;
+}
+
+.rank-badge {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gold);
+  color: #000;
+  font-family: 'Orbitron';
+  font-size: 0.65rem;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+
+.name-text {
+  font-size: 1rem;
+  font-weight: 900;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.odds-value {
+  font-family: 'Orbitron';
+  font-size: 1.35rem;
+  color: var(--neon);
+  text-shadow: 0 0 8px var(--neon);
+  flex-shrink: 0;
+}
+
+/* ==============================
+   Final Result — Landscape Split
+============================== */
+#final-result {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.97);
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.result-layout {
+  display: flex;
+  flex-direction: row;
+  width: 94%;
+  max-width: 1020px;
+  animation: emerge 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes emerge {
+  from { transform: scale(0.88) translateY(16px); opacity: 0; }
+  to   { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+/* Winner — left */
+.winner-panel {
+  flex: 1;
+  border: 4px solid var(--gold-color);
+  border-right: 2px solid rgba(255, 215, 0, 0.25);
+  border-radius: 20px 0 0 20px;
+  padding: 36px 28px;
+  text-align: center;
+  background: radial-gradient(ellipse at center, #1c0404, #000);
+  box-shadow: inset 0 0 60px rgba(255, 62, 26, 0.06), -6px 0 60px rgba(255, 62, 26, 0.25);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.winner-label {
+  font-family: 'Orbitron';
+  color: var(--gold-color);
+  font-size: 1rem;
+  letter-spacing: 10px;
+  text-shadow: 0 0 10px var(--gold-color);
+}
+
+.win-name {
+  font-size: 3.5rem;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 0 30px #fff, 0 0 70px var(--fire);
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  width: 100%;
+  text-align: center;
+  display: block;
+}
+
+.win-odds {
+  font-family: 'Orbitron';
+  font-size: 2rem;
+  color: var(--cyan);
+  text-shadow: 0 0 14px var(--cyan);
+}
+
+/* Trifecta — right */
+.trifecta-panel {
+  width: 38%;
+  border: 4px solid var(--gold-color);
+  border-left: 2px solid rgba(255, 215, 0, 0.25);
+  border-radius: 0 20px 20px 0;
+  padding: 36px 22px;
+  background: radial-gradient(ellipse at center, #04040f, #000);
+  box-shadow: inset 0 0 60px rgba(0, 242, 255, 0.04), 6px 0 60px rgba(0, 242, 255, 0.12);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.tri-label {
+  font-family: 'Orbitron';
+  color: var(--gold-color);
+  font-size: 0.8rem;
+  letter-spacing: 4px;
+  text-align: center;
+  display: block;
+}
+
+.tri-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+}
+
+.tri-step {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.07);
+  padding: 10px 16px;
+  border-radius: 50px;
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+
+.tri-arrow {
+  color: var(--gold-color);
+  font-size: 1rem;
+  animation: bounce 1s infinite alternate;
+}
+
+@keyframes bounce {
+  from { transform: translateY(0); }
+  to   { transform: translateY(5px); }
+}
+</style>
+</head>
+<body>
+
+<canvas id="three-canvas"></canvas>
+
+<div class="app-layout">
+
+  <!-- Left Panel -->
+  <div class="left-panel">
+    <div class="logo-block">
+      <span class="logo">CRUTO DERBY</span>
+      <span class="logo-year">2026 SEASON</span>
+    </div>
+
+    <div class="votes-display">
+      <span class="votes-label">Total Votes</span>
+      <span class="votes-count" id="totalVotes">0</span>
+    </div>
+
+    <div class="podium-block">
+      <div class="podium-label">Top Favourites</div>
+      <div id="podiumList">
+        <div class="podium-item p1"><span class="podium-rank">1</span><span class="podium-name">---</span><span class="podium-odds">---</span></div>
+        <div class="podium-item p2"><span class="podium-rank">2</span><span class="podium-name">---</span><span class="podium-odds">---</span></div>
+        <div class="podium-item p3"><span class="podium-rank">3</span><span class="podium-name">---</span><span class="podium-odds">---</span></div>
+      </div>
+    </div>
+
+    <div class="live-badge">
+      <div class="live-dot"></div>
+      <span class="live-text">Live Odds</span>
+    </div>
+  </div>
+
+  <!-- Right Panel -->
+  <div class="right-panel">
+    <div class="board-header">
+      <div class="board-title">ODDS BOARD</div>
+      <div class="board-sub">Updated every 3s</div>
+    </div>
+    <div class="odds-grid" id="oddsGrid"></div>
+  </div>
+
+</div>
+
+<!-- Final Result Overlay -->
+<div id="final-result">
+  <div class="result-layout">
+    <div class="winner-panel">
+      <div class="winner-label">🏆 WINNER 🏆</div>
+      <div class="win-name" id="win-name">---</div>
+      <div class="win-odds" id="win-odds">---x</div>
+    </div>
+    <div class="trifecta-panel">
+      <span class="tri-label">TRIFECTA (3連単)</span>
+      <div class="tri-flow">
+        <div class="tri-step" id="tri-1st">---</div>
+        <div class="tri-arrow">▼</div>
+        <div class="tri-step" id="tri-2nd">---</div>
+        <div class="tri-arrow">▼</div>
+        <div class="tri-step" id="tri-3rd">---</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// --- Three.js background ---
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('three-canvas'), alpha: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+const geo = new THREE.BufferGeometry();
+const count = 1500;
+const pos = new Float32Array(count * 3);
+for(let i = 0; i < count * 3; i++) pos[i] = (Math.random() - 0.5) * 40;
+geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+const mat = new THREE.PointsMaterial({ size: 0.12, color: 0xff3e1a, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending });
+const points = new THREE.Points(geo, mat);
+scene.add(points);
+camera.position.z = 15;
+function animate() {
+  requestAnimationFrame(animate);
+  points.rotation.y += 0.0015;
+  renderer.render(scene, camera);
+}
+animate();
+
+// --- Main Logic ---
+let lastJson = "";
+let isResult = false;
+
+function update() {
+  if (isResult || typeof google === 'undefined') return;
+  google.script.run.withSuccessHandler(data => {
+    if (!data || JSON.stringify(data) === lastJson) return;
+    document.getElementById('totalVotes').textContent = data.totalVotes;
+    const sorted = [...data.stats].sort((a, b) => parseFloat(a.odds) - parseFloat(b.odds));
+
+    // 2-column odds grid
+    document.getElementById('oddsGrid').innerHTML = sorted.map((s, i) => `
+      <div class="odds-item${i < 2 ? ' top' : ''}">
+        <div class="odds-name">
+          <span class="rank-badge">${i + 1}</span>
+          <span class="name-text">${s.name}</span>
+        </div>
+        <div class="odds-value">${parseFloat(s.odds) >= 999 ? '---' : s.odds + 'x'}</div>
+      </div>
+    `).join('');
+
+    // Top 3 podium in left panel
+    const cls = ['p1', 'p2', 'p3'];
+    document.getElementById('podiumList').innerHTML = sorted.slice(0, 3).map((s, i) => `
+      <div class="podium-item ${cls[i]}">
+        <span class="podium-rank">${i + 1}</span>
+        <span class="podium-name">${s.name}</span>
+        <span class="podium-odds">${parseFloat(s.odds) >= 999 ? '---' : s.odds + 'x'}</span>
+      </div>
+    `).join('');
+
+    lastJson = JSON.stringify(data);
+  }).getRaceStats();
+}
+
+function check() {
+  if (isResult || typeof google === 'undefined') return;
+  google.script.run.withSuccessHandler(res => {
+    if (res && res.winID) {
+      isResult = true;
+      google.script.run.withSuccessHandler(data => {
+        const win = data.stats.find(s => s.id == res.winID);
+        const t1  = data.stats.find(s => s.id == res.trifecta[0]);
+        const t2  = data.stats.find(s => s.id == res.trifecta[1]);
+        const t3  = data.stats.find(s => s.id == res.trifecta[2]);
+        const winEl = document.getElementById('win-name');
+        const t1El  = document.getElementById('tri-1st');
+        const t2El  = document.getElementById('tri-2nd');
+        const t3El  = document.getElementById('tri-3rd');
+        winEl.textContent = win.name;
+        document.getElementById('win-odds').textContent = win.odds + 'x';
+        t1El.textContent = "1st: " + t1.name;
+        t2El.textContent = "2nd: " + t2.name;
+        t3El.textContent = "3rd: " + t3.name;
+        document.getElementById('final-result').style.display = "flex";
+        fitText(winEl, 3.5);
+        fitText(t1El, 1.35);
+        fitText(t2El, 1.35);
+        fitText(t3El, 1.35);
+      }).getRaceStats();
+    }
+  }).getActualResult();
+}
+
+function fitText(el, initialRem) {
+  let fontSize = initialRem * 16;
+  el.style.fontSize = fontSize + 'px';
+  while (el.scrollWidth > el.offsetWidth && fontSize > 12) {
+    fontSize -= 1;
+    el.style.fontSize = fontSize + 'px';
+  }
+}
+
+if (typeof google !== 'undefined') {
+  setInterval(update, 3000);
+  setInterval(check, 3000);
+  update();
+}
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>
