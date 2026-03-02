@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --accent: #FF8C00;
+        --accent-glow: rgba(255, 140, 0, 0.18);
+        --text: #f0f0f0;
+        --text-dim: rgba(240, 240, 240, 0.45);
+        --bg-left: #0d0d12;
+        --bg-right: #13131a;
+        --border: rgba(255, 255, 255, 0.05);
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+
+      body {
+        font-family: 'Inter', 'Noto Sans JP', sans-serif;
+        display: flex;
+        width: 100vw;
+        height: 100vh;
+        background: var(--bg-right);
+        color: var(--text);
+        overflow: hidden;
+      }
+
+      /* ==============================
+         Left Panel — Visual / Brand
+      ============================== */
+      .panel-left {
+        width: 42%;
+        background: var(--bg-left);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        border-right: 1px solid var(--border);
+        overflow: hidden;
+      }
+
+      /* Soft radial glow */
+      .panel-left::before {
+        content: '';
+        position: absolute;
+        width: 360px;
+        height: 360px;
+        background: radial-gradient(circle, rgba(255,140,0,0.10) 0%, transparent 68%);
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+      }
+
+      /* Grid overlay */
+      .grid-overlay {
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(255,140,0,0.025) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,140,0,0.025) 1px, transparent 1px);
+        background-size: 44px 44px;
+      }
+
+      /* Corner bracket decorations */
+      .corner {
+        position: absolute;
+        width: 22px;
+        height: 22px;
+      }
+      .corner--tl { top: 18px; left: 18px; border-top: 1px solid rgba(255,140,0,0.25); border-left: 1px solid rgba(255,140,0,0.25); }
+      .corner--tr { top: 18px; right: 18px; border-top: 1px solid rgba(255,140,0,0.25); border-right: 1px solid rgba(255,140,0,0.25); }
+      .corner--bl { bottom: 18px; left: 18px; border-bottom: 1px solid rgba(255,140,0,0.25); border-left: 1px solid rgba(255,140,0,0.25); }
+      .corner--br { bottom: 18px; right: 18px; border-bottom: 1px solid rgba(255,140,0,0.25); border-right: 1px solid rgba(255,140,0,0.25); }
+
+      /* Brand content */
+      .brand-wrap {
+        position: relative;
+        text-align: center;
+        z-index: 1;
+      }
+
+      /* Multi-ring orbital loader */
+      .ring-container {
+        position: relative;
+        width: 130px;
+        height: 130px;
+        margin: 0 auto 36px;
+      }
+
+      .ring-outer {
+        position: absolute;
+        inset: 0;
+        border: 1px solid rgba(255,140,0,0.12);
+        border-radius: 50%;
+        animation: spin-cw 10s linear infinite;
+      }
+      .ring-outer::before {
+        content: '';
+        position: absolute;
+        top: -3px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 5px;
+        height: 5px;
+        background: var(--accent);
+        border-radius: 50%;
+        box-shadow: 0 0 10px var(--accent), 0 0 20px rgba(255,140,0,0.4);
+      }
+
+      .ring-mid {
+        position: absolute;
+        inset: 14px;
+        border: 1px solid rgba(255,140,0,0.08);
+        border-radius: 50%;
+        animation: spin-ccw 7s linear infinite;
+      }
+      .ring-mid::before {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 4px;
+        height: 4px;
+        background: rgba(255,140,0,0.6);
+        border-radius: 50%;
+        box-shadow: 0 0 6px rgba(255,140,0,0.5);
+      }
+
+      .ring-inner {
+        position: absolute;
+        inset: 28px;
+        border: 1.5px solid transparent;
+        border-top-color: var(--accent);
+        border-right-color: rgba(255,140,0,0.25);
+        border-radius: 50%;
+        animation: spin-cw 1.1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+      }
+
+      .ring-core {
+        position: absolute;
+        inset: 44px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(255,140,0,0.22) 0%, transparent 70%);
+      }
+
+      @keyframes spin-cw  { to { transform: rotate(360deg); } }
+      @keyframes spin-ccw { to { transform: rotate(-360deg); } }
+
+      .brand-name {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.35em;
+        color: var(--accent);
+        text-transform: uppercase;
+        margin-bottom: 6px;
+      }
+
+      .brand-sub {
+        font-size: 9px;
+        font-weight: 400;
+        letter-spacing: 0.2em;
+        color: var(--text-dim);
+        text-transform: uppercase;
+      }
+
+      /* ==============================
+         Right Panel — Status
+      ============================== */
+      .panel-right {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 0 60px;
+      }
+
+      .process-label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 0.28em;
+        color: var(--accent);
+        text-transform: uppercase;
+        margin-bottom: 18px;
+      }
+      .process-label::before {
+        content: '';
+        display: inline-block;
+        width: 20px;
+        height: 1px;
+        background: var(--accent);
+        opacity: 0.7;
+      }
+
+      .title {
+        font-size: 30px;
+        font-weight: 500;
+        line-height: 1.25;
+        letter-spacing: 0.02em;
+        color: var(--text);
+        margin-bottom: 20px;
+      }
+      .title em {
+        font-style: normal;
+        color: var(--accent);
+      }
+
+      .divider {
+        width: 36px;
+        height: 1px;
+        background: rgba(255,140,0,0.35);
+        margin-bottom: 22px;
+      }
+
+      .msg {
+        font-size: 13px;
+        font-weight: 300;
+        color: var(--text-dim);
+        line-height: 2;
+        margin-bottom: 36px;
+      }
+
+      /* Step list */
+      .steps {
+        display: flex;
+        flex-direction: column;
+        gap: 13px;
+        margin-bottom: 36px;
+      }
+
+      .step {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 12px;
+        color: rgba(240,240,240,0.25);
+        letter-spacing: 0.02em;
+      }
+      .step.active {
+        color: rgba(240,240,240,0.55);
+      }
+      .step.active .step-dot {
+        background: var(--accent);
+        box-shadow: 0 0 8px rgba(255,140,0,0.55);
+      }
+
+      .step-dot {
+        flex-shrink: 0;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.08);
+        animation: dot-pulse 1.6s ease-in-out infinite;
+      }
+      .step:nth-child(2) .step-dot { animation-delay: 0.25s; }
+      .step:nth-child(3) .step-dot { animation-delay: 0.5s; }
+
+      @keyframes dot-pulse {
+        0%, 100% { opacity: 0.4; transform: scale(1); }
+        50%       { opacity: 1;   transform: scale(1.5); }
+      }
+
+      /* Progress bar */
+      .progress-wrap {
+        margin-bottom: 14px;
+      }
+      .progress-meta {
+        display: flex;
+        justify-content: space-between;
+        font-size: 9px;
+        letter-spacing: 0.15em;
+        color: rgba(240,240,240,0.2);
+        text-transform: uppercase;
+        margin-bottom: 8px;
+      }
+      .progress-track {
+        height: 2px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, rgba(255,140,0,0.4), var(--accent));
+        border-radius: 2px;
+        animation: progress-sweep 2.8s ease-in-out infinite;
+      }
+      @keyframes progress-sweep {
+        0%   { width: 12%; }
+        50%  { width: 78%; }
+        100% { width: 12%; }
+      }
+
+      .footer-note {
+        font-size: 9px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.1);
+      }
+    </style>
+  </head>
+  <body>
+
+    <!-- Left Panel -->
+    <div class="panel-left">
+      <div class="grid-overlay"></div>
+      <div class="corner corner--tl"></div>
+      <div class="corner corner--tr"></div>
+      <div class="corner corner--bl"></div>
+      <div class="corner corner--br"></div>
+
+      <div class="brand-wrap">
+        <div class="ring-container">
+          <div class="ring-outer"></div>
+          <div class="ring-mid"></div>
+          <div class="ring-inner"></div>
+          <div class="ring-core"></div>
+        </div>
+        <div class="brand-name">Cruto Professional</div>
+        <div class="brand-sub">Data Export System</div>
+      </div>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="panel-right">
+      <div class="process-label">Processing</div>
+
+      <div class="title">
+        Generating<br><em>CSV Export</em>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="msg">
+        看護・リハビリの各データを統合しています。<br>
+        freee 形式への変換が完了するまで<br>
+        この画面のままお待ちください。
+      </div>
+
+      <div class="steps">
+        <div class="step active">
+          <div class="step-dot"></div>
+          データ収集・統合中
+        </div>
+        <div class="step active">
+          <div class="step-dot"></div>
+          freee 形式へ変換中
+        </div>
+        <div class="step">
+          <div class="step-dot"></div>
+          CSV ファイル生成
+        </div>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-meta">
+          <span>Progress</span>
+          <span>Processing...</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill"></div>
+        </div>
+      </div>
+
+      <div class="footer-note">DO NOT CLOSE THIS WINDOW</div>
+    </div>
+
+    <script>
+      window.onload = function() {
+        google.script.run
+          .withSuccessHandler((resultMsg) => {
+            alert(resultMsg);
+            google.script.host.close();
+          })
+          .withFailureHandler((error) => {
+            alert("システムエラーが発生しました:\n" + error.message);
+            google.script.host.close();
+          })
+          .runProcess();
+      };
+    </script>
+  </body>
+</html>
